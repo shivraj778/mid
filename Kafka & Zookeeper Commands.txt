@@ -1,0 +1,151 @@
+-----------------------------------	 Apache-kafka & Zookeeper commands	------------------------------
+
+NOTE:	For UNIX - use .sh extension
+	For Windows- use .bat extension
+	Zookeeper default port: 2181
+	Kafka default port:	9092
+-------------------------------------------
+
+1)	Start zookeeper-
+	
+	Windows---
+	Command Syntax-
+	D:\kafka_2.13-2.4.0\bin\windows>zookeeper-server-start.bat <space and paste complete path of zookeeper.propert
+ies file>
+
+	Ex:	
+	D:\kafka_2.13-2.4.0\bin\windows>zookeeper-server-start.bat D:\Kafka\kafka_2.13-2.4.0\config\zookeeper.properties
+	
+
+	Linux---
+	bin]$ ./zookeeper-server-start.sh <space and paste complete path of zookeeper.propert
+ies file>
+
+	Ex:	
+	bin]$ ./zookeeper-server-start.sh ../config/zookeeper.properties
+	
+
+2)	Start Kafka-
+
+	Windows---
+	Command Syntax-
+		D:\kafka_2.13-2.4.0\bin\windows>kafka-server-start.bat <space and paste complete path of server.propert
+	ies file>
+
+	Ex:
+
+	D:\kafka_2.11-2.3.1\bin\windows>kafka-server-start.bat D:\kafka_2.11-2.3.1\config\server.properties
+
+	For Linux---
+
+	Command Syntax-
+	bin]$ ./kafka-server-start.sh <space and paste complete path of server.propert
+	ies file>
+
+	Ex:
+
+	bin]$ ./kafka-server-start.sh ../config/server.properties
+	   
+
+3)Topic creation
+	For Linux---
+	Syntax-
+    ./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic-Name
+    
+	Ex.
+    bin]$ ./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic Kafka_Example
+	
+
+4)Topic create by using own IP:
+	For Linux---
+	Syntax-
+    kafka-topics.sh --create --zookeeper 192.168.37.29:2181 --replication-factor 3 --partitions 3 --topic topic-Name
+    
+	Ex.
+    bin]$ ./kafka-topics.sh --create --zookeeper 192.168.37.29:2181 --replication-factor 3 --partitions 3 --topic Kafka_Example
+	
+
+5)show topic list
+	For Linux---
+    ./kafka-topics.sh --list --zookeeper localhost:2181
+
+    Topic created by using different ip address-
+		
+    bin]$ ./kafka-topics.sh --list --zookeeper <topic creators ip>:2181		
+			
+				(OR)
+
+    bin]$ ./kafka-topics.sh --zookeeper localhost:2181 --list  
+
+
+6)Producer
+	For Linux---
+   ./kafka-console-producer.sh --broker-list localhost:9092 --topic topic-Name
+   >--Message--   
+   
+   exapmle
+   bin]$ ./kafka-console-producer.sh --broker-list localhost:9092 --topic Kafka_Example
+   >this is kafka message  
+	
+
+7)producer by using own IP:
+	For Linux---
+    ./kafka-console-producer.sh --broker-list 192.168.37.29:9092 --topic topic-Name
+    
+    example
+    bin]$ ./kafka-console-producer.sh --broker-list 192.168.37.29:9092 --topic kafka_consumer
+	
+8)Consumer by using localhost
+	For Linux---
+    ./kafka-console-consumer.sh --bootstrap-server localhost:2181 --topic topic-Name --from-beginning
+    
+    example
+    bin]$ ./kafka-console-consumer.sh --bootstrap-server localhost:2181 --topic Kafka_Example --from-beginning
+	
+	
+9)Consumer  by  using own IP:
+	For Linux---
+    ./kafka-console-consumer.sh --bootstrap-server 192.168.37.29:9092 --topic topic-Name --from-beginning
+    
+    example
+    bin]$ ./kafka-console-consumer.sh --bootstrap-server 192.168.37.29:9092 --topic Kafka_Example --from-beginning
+	
+10) To delete all the messages from a Kafka topic-
+
+	you need to change the retention time of that topic the default retention time of Kafka topic is 168 hours, i.e. 7 days. 
+	In this case, you have to change the retention time to 1 second, after which the messages from the topic will be deleted. 
+	After changing the retention time, you can go ahead and change the retention time of the topic back to 168 hours.
+	
+	For Linux---
+	Commands:
+
+	For localhost---
+	
+	syntax:
+	./kafka-topics.sh --zookeeper localhost:2181 --alter --topic <topic_name> --config retention.ms=1000
+
+	Ex.
+	bin]$ ./kafka-topics.sh --zookeeper localhost:2181 --alter --topic topic1 --config retention.ms=1000
+	
+	For specific IP---
+	
+	Syntax:
+	 ./kafka-topics.sh --zookeeper <your_ip>:2181 --alter --topic <topic_name> --config retention.ms=1000
+	
+	Ex.
+	bin]$ ./kafka-topics.sh --zookeeper 192.168.37.41:2181 --alter --topic topic1 --config retention.ms=1000
+	
+11)	How to check if ZooKeeper is running or up from command prompt (for windows only)-
+	For Linux---
+	bin]$ jps
+	
+12)	To check kafka server process id
+	bin]$ ps -elf | grep 'server.properties'
+
+13)	To kill any process id
+	bin]$ kill -9 <process_id>
+
+14)	How can we know which broker is doing what? To see that run the "describe topics" command:
+
+	bin] ./kafka-topics.sh --describe --bootstrap-server <ip>:<port_no> --topic <topic_name>	
+	

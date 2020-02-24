@@ -1,0 +1,257 @@
+===================﻿==============================How to create clusters (on single pc)==========================================================
+
+We are going to create 1 cluster on single pc:
+
+NOTE:	For UNIX - use .sh extension
+	For Windows- use .bat extension
+	Zookeeper default port: 2181
+	Kafka default port:	9092
+-------------------------------------------
+		
+
+1)	copy and rename the server.properties like-
+	server.properties ------this is your original file (this is a leader or parent in your cluster)
+	
+	server1.properties 
+	server2.properties
+	
+2)	open above renamed file and do the following 3 changes in both files -
+
+	-------(for server1.properties file)-------------
+	broker.id=1	
+	listeners=PLAINTEXT://x.x.x.x:9093		(uncomment it & write your own pc's ip)
+	log.dirs=D:\kafka_2.11-2.3.1\kafka-logs-1
+	
+	
+	-------(for server2.properties file)-------------
+	broker.id=2	
+	listeners=PLAINTEXT://:9094		(uncomment it)
+	log.dirs=D:\kafka_2.11-2.3.1\kafka-logs-2
+	
+3)	Now start kafka by using following command -
+
+	-------(for server1.properties file)-------------
+	open new terminal
+	
+	For Windows---
+	D:\kafka_2.11-2.3.1\bin\windows>kafka-server-start.bat D:\kafka_2.11-2.3.1\config\server1.properties
+	
+	For Linux---
+	bin]$ ./kafka-server-start.bat ../config/server1.properties
+	
+	-------(for server2.properties file)-------------
+	open new terminal
+	
+	For Windows---
+	D:\kafka_2.11-2.3.1\bin\windows>kafka-server-start.bat D:\kafka_2.11-2.3.1\config\server2.properties	
+	
+	For Linux---
+	bin]$ ./afka-server-start.sh ../config/server2.properties	
+	
+4)	Create a new topic (Test1 is topic name)
+	open new terminal
+	
+	For Windows---
+	D:\kafka_2.11-2.3.1\bin\windows>kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 3 --parti
+tions 2 --topic Test1
+
+	For Linux---
+	bin]$ ./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --parti
+tions 2 --topic Test1
+
+
+
+5)	To check topics details (Test1 is topic name) use following command-
+
+	For Windows---
+	D:\kafka_2.11-2.3.1\bin\windows>kafka-topics.bat --zookeeper localhost:2181 --describe  --topic Test1
+	
+	For Linux---
+	bin]$ ./kafka-topics.sh --zookeeper localhost:2181 --describe  --topic Test1
+
+	
+=================================How to create clusters (using different IP's)==============================
+
+
+We are going to create 1 cluster using 3 different IP's:
+
+NOTE:	Zookeeper default port no:	2181	(here we changed zookeeper port no:2182)
+	Apache-Kafka default port no: 9092	(here we changed kafka port no:9092)
+		
+
+Update Zookeeper properties	--
+		
+1)	Create and Update zookeeper1 properties-
+	Create Zookeeper1.properties file using the below command in all instances.
+	
+	dataDir=D:/kafka_2.11-2.3.1/zkdata1
+            clientPort=2182         
+            maxClientCnxns=200          
+            tickTime=2000          
+            server.1=x.x.x.x:2888:3888	(this is my own pc's ip)
+			server.2=x.x.x.x:2888:3888
+			server.3=x.x.x.x:2888:3888         
+            initLimit=20         
+            syncLimit=10
+
+	Note: The value of dataDir with the directory where you would like ZooKeeper to save its data and log respectively.
+		clientPort property, as the name suggests, is for the clients to connect to ZooKeeper Service.
+		x in server.x denotes the id of Node. Each server.x row must have a unique id. 
+		Each server is assigned an id by creating a file named myid, one for each server, 
+		which resides in that server’s data directory, as specified by the configuration file parameter dataDir.
+		
+2)	Create myid file - 
+
+	Here I have created myid file on following path-
+	D:\kafka_2.11-2.3.1\zkdata1
+	
+	and write 1 in that file because in zookeeper1.properties file, my own server ip is at 1st position i.e.
+	server.1=x.x.x.x:2888:3888
+	
+	Note:
+		The ports, :2888:3888(Don’t change) that is at the end of the nodes. 
+		Zookeeper nodes will use these ports to connect the individual follower nodes to the leader nodes. 
+		The other port is used for leader election.
+		And x.x.x.x is each node IP Address better to use private IP here. 
+		If you are trying to use public IP, Current node IP should be replaced with 0.0.0.0 in each node.
+
+3)	Finish.	
+		
+		
+Update Kafka server properties-------
+
+	Just copy server.properties with name server1.properties
+
+1)	Update the Kafka server1.properties file in all instances with the below content. 
+	This file is located in D:\kafka_2.11-2.3.1\config\server1.properties
+	
+	
+	broker.id=1
+        # With the help of this we can consume outside of instance    
+        advertised.host.name=x.x.x.x # current node public IP or hostname       
+        # Enter the zookeeper quorum details as below    
+        zookeeper.connect=x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181
+		
+	-------(for server1.properties file)-------------
+	broker.id=0	
+	listeners=PLAINTEXT://x.x.x.x:9093		(uncomment it & write your pc's ip)
+	log.dirs=D:\kafka_2.11-2.3.1\kafka-logs1	
+
+	
+	Here we can connect zookeeper with given ip's -
+		zookeeper.connect=x.x.x.x:2182,x.x.x.x:2182,x.x.x.x:2181
+		advertised.host.name=192.168.37.41
+		
+		
+	Note:	The broker.id property is the unique and permanent name of each node in the cluster.
+		advertised.host.name Hostname to publish to ZooKeeper for clients to use.
+		zookeeper.connect Specifies the ZooKeeper connection string in the form hostname:port where the host (
+		better to use private IP of each node) and port are the host and port of a ZooKeeper server.
+
+	Do the above same changes in other's ip also.
+	But make sure that, myid from myid file and broker id from server1.properties file are unique.
+	
+2)	Start the services------
+
+	Before starting the Kafka service, start the zookeeper service using below command in all instances.
+	
+
+	-------(for zookeeper1.properties file)-------------
+	open new terminal
+	
+	For Windows---
+	
+	Command Syntax-
+	D:\kafka_2.13-2.4.0\bin\windows>zookeeper-server-start.bat <space and paste complete path of zookeeper.propert
+ies file>
+
+	Ex:
+	
+	D:\kafka_2.13-2.4.0\bin\windows>zookeeper-server-start.bat D:\Kafka\kafka_2.13-2.4.0\config\zookeeper1.properties
+	
+	For Linux---
+	bin]$ ./zookeeper-server-start.sh ../config/zookeeper1.properties
+	Start the Kafka service using below command in all instances
+	
+	-------(for server1.properties file)-------------
+	open new terminal
+	
+	For Windows---
+	Command Syntax-
+		D:\kafka_2.13-2.4.0\bin\windows>kafka-server-start.bat <space and paste complete path of server.propert
+	ies file>
+
+	Ex:
+
+	D:\kafka_2.11-2.3.1\bin\windows>kafka-server-start.bat D:\kafka_2.11-2.3.1\config\server1.properties
+
+
+	For Linux---
+	Command Syntax-
+	bin]$ ./kafka-server-start.sh <space and paste complete path of server.propert
+	ies file>
+
+	Ex:
+
+	bin]$ ./kafka-server-start.bat ./config/server1.properties
+	
+3)	Finish.
+	
+
+
+
+==================================You can also start other's zookeeper and Apache-kafka from your own system====================================
+
+Steps: 
+
+1) First of all,start terminal from your own kafka's bin directory and start zookeeper and kafka. 
+2) Now start different terminal for different ip's and run different user's zookeeper and kafka's on it.
+
+For Linux---
+
+User's ip and credentials are:
+
+1)Gaurav
+
+ssh gaurav3539@192.168.37.41
+<type given user's pwd>
+
+cd /home/ISG/gaurav3539/kafka_2.11-2.3.1/bin/
+
+bin]$ ./zookeeper-server-start.sh ../config/zookeeper.properties
+
+
+2)Sanchita
+
+ssh sanchita3984@192.168.37.29
+<type given user's pwd>
+
+ cd /home/ISG/sanchita3984/Desktop/software/kafka_2.11-2.3.1/bin/ 
+
+bin]$ ./zookeeper-server-start.sh ../config/zookeeper.properties
+
+
+3)Akshay
+
+
+ssh akshay3978@192.168.37.24
+<type given user's pwd>
+
+cd /home/ISG/akshay3978/kafka_2.11-2.3.1/bin/ 
+
+bin]$ ./zookeeper-server-start.sh ../config/zookeeper.properties
+
+4) Juber
+
+
+ssh juber3709@192.168.37.40
+<type given user's pwd>
+
+cd /home/ISG/juber3709/kafka_2.11-2.3.1/bin/ 
+
+bin]$ ./zookeeper-server-start.sh ../config/zookeeper.properties
+
+
+
+
+
